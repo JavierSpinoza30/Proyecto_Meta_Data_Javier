@@ -1,0 +1,18 @@
+{
+  "name": "proyecto_description_importaciones",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start appImp.py",
+    "stop": "pm2 stop appImp.py",
+    "restart": "pm2 restart appImp.py",
+    "status": "pm2 status"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "pm2": "^5.4.3"
+  }
+}

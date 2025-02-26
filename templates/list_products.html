@@ -1,0 +1,331 @@
+{% extends "layout.html" %}
+
+{% block title %}Listado de Productos | Dashboard de Productos{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4 mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h2 class="h4 mb-1 fw-bold">Gestión de Productos</h2>
+                    <p class="mb-0 opacity-75">Administra y visualiza el estado de tus productos</p>
+                </div>
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <a href="{{ url_for('reports') }}" class="btn btn-info text-white">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Ver Informes
+                    </a>
+                    <a href="{{ url_for('process_descriptions') }}" class="btn btn-light" data-bs-toggle="tooltip" title="Generar descripciones automáticas">
+                        <i class="bi bi-magic me-2"></i>Generar Descripciones
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Estadísticas rápidas -->
+            <div class="row mb-4 g-3">
+                <div class="col-md-4">
+                    <div class="card bg-white border-0 h-100 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-box-seam text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Total de Productos</h6>
+                                <h3 class="mb-0 fw-bold">{{ total_products }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-white border-0 h-100 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-check-circle text-success fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Productos Completados</h6>
+                                <h3 class="mb-0 fw-bold">{{ quick_stats.completed_percentage }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-white border-0 h-100 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-clock-history text-warning fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Productos Pendientes</h6>
+                                <h3 class="mb-0 fw-bold">{{ quick_stats.pending_percentage }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de filtros y búsqueda -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <form action="{{ url_for('index') }}" method="GET" id="searchForm">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Buscar por SKU o nombre..." id="searchInput" name="search" value="{{ request.args.get('search', '') }}">
+                            <!-- Campos ocultos para mantener los parámetros de paginación y ordenamiento -->
+                            <input type="hidden" name="page" value="1">
+                            <input type="hidden" name="sort" value="{{ sort_by }}">
+                            <input type="hidden" name="order" value="{{ order }}">
+                            <button class="btn btn-primary" type="submit">Buscar</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <form action="{{ url_for('index') }}" method="GET" id="filterForm">
+                        <select class="form-select" id="statusFilter" name="status" onchange="this.form.submit()">
+                            <option value="">Todos los estados</option>
+                            <optgroup label="Descripción">
+                                <option value="description-completed" {% if request.args.get('status') == 'description-completed' %}selected{% endif %}>Descripción - Completado</option>
+                                <option value="description-pending" {% if request.args.get('status') == 'description-pending' %}selected{% endif %}>Descripción - Pendiente</option>
+                            </optgroup>
+                            <optgroup label="Meta Descripción">
+                                <option value="meta_description-completed" {% if request.args.get('status') == 'meta_description-completed' %}selected{% endif %}>Meta Descripción - Completado</option>
+                                <option value="meta_description-pending" {% if request.args.get('status') == 'meta_description-pending' %}selected{% endif %}>Meta Descripción - Pendiente</option>
+                            </optgroup>
+                            <optgroup label="Meta Título">
+                                <option value="meta_title-completed" {% if request.args.get('status') == 'meta_title-completed' %}selected{% endif %}>Meta Título - Completado</option>
+                                <option value="meta_title-pending" {% if request.args.get('status') == 'meta_title-pending' %}selected{% endif %}>Meta Título - Pendiente</option>
+                            </optgroup>
+                            <optgroup label="Keywords">
+                                <option value="keyword-completed" {% if request.args.get('status') == 'keyword-completed' %}selected{% endif %}>Keywords - Completado</option>
+                                <option value="keyword-pending" {% if request.args.get('status') == 'keyword-pending' %}selected{% endif %}>Keywords - Pendiente</option>
+                            </optgroup>
+                        </select>
+                        <!-- Campos ocultos para mantener los parámetros de búsqueda y ordenamiento -->
+                        <input type="hidden" name="search" value="{{ request.args.get('search', '') }}">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="sort" value="{{ sort_by }}">
+                        <input type="hidden" name="order" value="{{ order }}">
+                    </form>
+                </div>
+                <div class="col-md-3 text-md-end text-center">
+                    {% if request.args.get('search') or request.args.get('status') %}
+                    <a href="{{ url_for('index') }}?page=1&sort={{ sort_by }}&order={{ order }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Limpiar filtros
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Filtros activos -->
+            {% if request.args.get('search') or request.args.get('status') %}
+            <div class="mb-3 p-3 bg-light rounded-3">
+                <div class="d-flex align-items-center flex-wrap">
+                    <span class="me-2 text-muted"><i class="bi bi-funnel-fill me-1"></i>Filtros activos:</span>
+                    {% if request.args.get('search') %}
+                    <span class="badge bg-primary me-2 mb-2 mb-md-0">
+                        <i class="bi bi-search me-1"></i>
+                        Búsqueda: "{{ request.args.get('search') }}"
+                    </span>
+                    {% endif %}
+                    {% if request.args.get('status') %}
+                    {% set category, status_value = request.args.get('status').split('-') %}
+                    <span class="badge bg-info me-2 mb-2 mb-md-0">
+                        <i class="bi bi-filter me-1"></i>
+                        {% if category == 'description' %}Descripción{% elif category == 'meta_description' %}Meta Descripción{% elif category == 'meta_title' %}Meta Título{% elif category == 'keyword' %}Keywords{% endif %} - 
+                        {% if status_value == 'completed' %}Completado{% else %}Pendiente{% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="table-responsive rounded-3">
+                <table class="table table-hover align-middle border-top">
+                    <thead class="table-light">
+                        {% macro sort_link(column, title) %}
+                            <th class="text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    {{ title }}
+                                    <a href="?sort={{ column }}&order={% if sort_by == column and order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+                                       class="text-white ms-2 text-decoration-none">
+                                        <i class="bi bi-arrow-{% if sort_by == column %}{% if order == 'asc' %}up-square-fill{% else %}down-square-fill{% endif %}{% else %}down-up{% endif %}"></i>
+                                    </a>
+                                </div>
+                            </th>
+                        {% endmacro %}
+
+                        {{ sort_link('sku', 'SKU') }}
+                        {{ sort_link('name', 'Nombre') }}
+                        {{ sort_link('type_id', 'Tipo') }}
+                        {{ sort_link('status_product_description', 'Descripción') }}
+                        {{ sort_link('status_product_meta_description', 'Meta Desc.') }}
+                        {{ sort_link('status_product_meta_title', 'Meta Título') }}
+                        {{ sort_link('status_product_keyword', 'Keywords') }}
+                        {{ sort_link('updated_at', 'Actualizado') }}
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr class="clickable-row" data-href="#">
+                            <td><code class="bg-light p-1 rounded">{{ product.sku }}</code></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="product-icon bg-light rounded-circle p-2 me-2">
+                                        <i class="bi bi-box text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="product-name">{{ product.name }}</div>
+                                        <small class="text-muted">ID: {{ product.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center"><span class="badge bg-info">{{ product.type_id }}</span></td>
+                            
+                            <!-- Estado de Descripción -->
+                            <td class="text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="status-indicator me-2 bg-{% if product.status_product_description == 'completed' %}success{% else %}warning{% endif %}"></div>
+                                    <span class="text-capitalize">
+                                        {% if product.status_product_description == 'completed' %}
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        {% else %}
+                                        <i class="bi bi-clock-history text-warning"></i>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            
+                            <!-- Estado de Meta Descripción -->
+                            <td class="text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="status-indicator me-2 bg-{% if product.status_product_meta_description == 'completed' %}success{% else %}warning{% endif %}"></div>
+                                    <span class="text-capitalize">
+                                        {% if product.status_product_meta_description == 'completed' %}
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        {% else %}
+                                        <i class="bi bi-clock-history text-warning"></i>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            
+                            <!-- Estado de Meta Título -->
+                            <td class="text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="status-indicator me-2 bg-{% if product.status_product_meta_title == 'completed' %}success{% else %}warning{% endif %}"></div>
+                                    <span class="text-capitalize">
+                                        {% if product.status_product_meta_title == 'completed' %}
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        {% else %}
+                                        <i class="bi bi-clock-history text-warning"></i>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            
+                            <!-- Estado de Keywords -->
+                            <td class="text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="status-indicator me-2 bg-{% if product.status_product_keyword == 'completed' %}success{% else %}warning{% endif %}"></div>
+                                    <span class="text-capitalize">
+                                        {% if product.status_product_keyword == 'completed' %}
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        {% else %}
+                                        <i class="bi bi-clock-history text-warning"></i>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            
+                            <td class="text-center"><small class="text-muted">{{ product.updated_at|datetime_format }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación Mejorada -->
+            <nav aria-label="Navegación" class="mt-4">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?page=1&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" aria-label="Primera">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ current_page - 1 }}&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" aria-label="Anterior">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    {% if current_page > 3 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">1</a>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+
+                    {% for page in range(max(1, current_page - 2), min(total_pages + 1, current_page + 3)) %}
+                    <li class="page-item {% if page == current_page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ page }}&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">{{ page }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if current_page < total_pages - 2 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ total_pages }}&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">{{ total_pages }}</a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ current_page + 1 }}&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" aria-label="Siguiente">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ total_pages }}&sort={{ sort_by }}&order={{ order }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" aria-label="Última">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+                <p class="text-center text-muted small mt-2">
+                    Mostrando {{ products|length }} de {{ total_products }} registros
+                </p>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Activar filas clickeables
+        const clickableRows = document.querySelectorAll('.clickable-row');
+        clickableRows.forEach(row => {
+            row.addEventListener('click', function() {
+                if (this.dataset.href) {
+                    window.location.href = this.dataset.href;
+                }
+            });
+        });
+
+        // Animación para las tarjetas de estadísticas
+        const statCards = document.querySelectorAll('.col-md-4 .card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

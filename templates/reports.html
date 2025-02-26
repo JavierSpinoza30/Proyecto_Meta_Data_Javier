@@ -1,0 +1,675 @@
+{% extends "layout.html" %}
+
+{% block title %}Informes | Dashboard de Productos{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4 mt-3">
+    <div class="card shadow-lg border-0 mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="h4 mb-0">Informes y Estadísticas</h2>
+                    <p class="mb-0 opacity-75">Visualización y generación de informes de productos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Nueva sección de estadísticas destacadas -->
+            <div class="row g-4 mb-4">
+                {% set total_completed = 0 %}
+                {% for category in categories %}
+                    {% set total_completed = total_completed + status_counts[category].completed %}
+                {% endfor %}
+                {% set total_possible = total_products * categories|length %}
+                {% set total_pending = total_possible - total_completed %}
+                {% set avg_completed_percentage = (total_completed / total_possible * 100)|round if total_possible > 0 else 0 %}
+                
+                <!-- Panel de estadísticas principales -->
+                <div class="col-12">
+                    <div class="bg-light rounded-3 p-4 position-relative overflow-hidden">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <h3 class="fw-bold mb-3">Panel de Control de Productos</h3>
+                                <p class="text-muted mb-4">Monitoreo en tiempo real del estado de todos los productos en la plataforma.</p>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                                <i class="bi bi-box-seam fs-4 text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small">Total Productos</div>
+                                                <div class="fs-4 fw-bold">{{ total_products }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 mt-4 mt-lg-0">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="card-title mb-0">Distribución por Categoría</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container chart-glow" style="height: 180px;">
+                                            <canvas id="overviewChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta unificada de estados -->
+            <div class="card mb-4" id="statusCards">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Estado de Todos los Campos</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Pestañas para navegar entre vistas -->
+                    <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-selected="true">
+                                <i class="bi bi-grid-3x3-gap me-2"></i>Resumen
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="charts-tab" data-bs-toggle="tab" data-bs-target="#charts" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-pie-chart me-2"></i>Gráficos
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-graph-up me-2"></i>Tendencias
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Contenido de las pestañas -->
+                    <div class="tab-content" id="statusTabsContent">
+                        <!-- Pestaña de Resumen -->
+                        <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                            <div class="row">
+                                {% for category in categories %}
+                                <div class="col-md-6 col-lg-3 mb-4 category-card" data-category="{{ category }}">
+                                    <div class="status-card">
+                                        <div class="status-card-header">
+                                            <i class="bi bi-{% if category == 'description' %}file-text{% elif category == 'meta_description' %}card-text{% elif category == 'meta_title' %}type{% else %}tags{% endif %}"></i>
+                                            <span>{% if category == 'description' %}Descripción{% elif category == 'meta_description' %}Meta Descripción{% elif category == 'meta_title' %}Meta Título{% else %}Keywords{% endif %}</span>
+                                        </div>
+                                        <div class="status-card-body">
+                                            <div class="status-card-progress">
+                                                <div class="progress progress-thin">
+                                                    <div class="progress-bar progress-bar-success" style="width: {{ status_counts[category].completed_percentage }}%"></div>
+                                                </div>
+                                                <div class="status-card-percentage">{{ status_counts[category].completed_percentage }}%</div>
+                                            </div>
+                                            <div class="status-card-stats">
+                                                <div class="status-card-stat completed">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                    <span>{{ status_counts[category].completed }}</span>
+                                                </div>
+                                                <div class="status-card-stat pending">
+                                                    <i class="bi bi-clock-history"></i>
+                                                    <span>{{ status_counts[category].pending }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Pestaña de Gráficos -->
+                        <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+                            <div class="row">
+                                {% for category in categories %}
+                                <div class="col-md-6 mb-4 category-chart" data-category="{{ category }}">
+                                    <div class="chart-card">
+                                        <div class="chart-card-header">
+                                            <i class="bi bi-{% if category == 'description' %}file-text{% elif category == 'meta_description' %}card-text{% elif category == 'meta_title' %}type{% else %}tags{% endif %} me-2"></i>
+                                            {% if category == 'description' %}Descripción{% elif category == 'meta_description' %}Meta Descripción{% elif category == 'meta_title' %}Meta Título{% else %}Keywords{% endif %}
+                                        </div>
+                                        <div class="chart-card-body">
+                                            <div class="chart-container chart-glow" style="height: 220px;">
+                                                <canvas id="chart-{{ category }}"></canvas>
+                                            </div>
+                                            <div class="chart-card-legend">
+                                                <div class="chart-legend-item">
+                                                    <span class="chart-legend-color" style="background-color: #06d6a0;"></span>
+                                                    <span>Completados: {{ status_counts[category].completed }}</span>
+                                                </div>
+                                                <div class="chart-legend-item">
+                                                    <span class="chart-legend-color" style="background-color: #ffbe0b;"></span>
+                                                    <span>Pendientes: {{ status_counts[category].pending }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Pestaña de Tendencias -->
+                        <div class="tab-pane fade" id="trends" role="tabpanel" aria-labelledby="trends-tab">
+                            <div class="card shadow-sm border-0 mb-4">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="trendCategory" class="form-label fw-bold">Seleccionar categoría para análisis:</label>
+                                        <select class="form-select" id="trendCategory">
+                                            <option value="description">Descripción</option>
+                                            <option value="meta_description">Meta Descripción</option>
+                                            <option value="meta_title">Meta Título</option>
+                                            <option value="keyword">Keywords</option>
+                                        </select>
+                                    </div>
+                                    <div class="chart-container chart-glow" style="height: 350px;">
+                                        <canvas id="trendChart"></canvas>
+                                    </div>
+                                    <div class="trend-legend mt-3">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="trend-legend-item">
+                                                <span class="trend-legend-color" style="background-color: #06d6a0;"></span>
+                                                <span>Completados</span>
+                                            </div>
+                                            <div class="trend-legend-item">
+                                                <span class="trend-legend-color" style="background-color: #ffbe0b;"></span>
+                                                <span>Pendientes</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar si Chart.js está disponible
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js no está cargado. Las gráficas no funcionarán.');
+            return;
+        }
+
+        // Función para crear gradientes (definida primero para evitar problemas)
+        function createGradient(ctx, color1, color2) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            return gradient;
+        }
+
+        // Definir nombres de categorías directamente en JavaScript
+        const categoryNames = {
+            'description': 'Descripción',
+            'meta_description': 'Meta Descripción',
+            'meta_title': 'Meta Título',
+            'keyword': 'Keywords'
+        };
+        
+        const categoryIcons = {
+            'description': 'file-text',
+            'meta_description': 'card-text',
+            'meta_title': 'type',
+            'keyword': 'tags'
+        };
+        
+        // Paleta mejorada con colores más vibrantes
+        const chartColors = {
+            primary: '#4361ee',
+            success: '#4cc9f0',
+            info: '#f72585',
+            warning: '#ffd166',
+            completed: '#06d6a0',
+            pending: '#ffbe0b',
+            completedBg: 'rgba(6, 214, 160, 0.2)',
+            pendingBg: 'rgba(255, 190, 11, 0.2)',
+            categoryColors: ['#4361ee', '#06d6a0', '#f72585', '#ffbe0b']
+        };
+        
+        // Configuración global de Chart.js para mejorar la apariencia
+        Chart.defaults.font.family = "'Segoe UI', 'Helvetica', 'Arial', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.plugins.tooltip.titleFont.size = 14;
+        Chart.defaults.plugins.tooltip.bodyFont.size = 13;
+        Chart.defaults.elements.arc.borderWidth = 0;
+        Chart.defaults.elements.line.tension = 0.4;
+        Chart.defaults.elements.point.radius = 4;
+        Chart.defaults.elements.point.hoverRadius = 6;
+        
+        const categoryCharts = {};
+        
+        // Inicializar gráfico de distribución general con diseño mejorado
+        function initOverviewChart() {
+            const ctx = document.getElementById('overviewChart');
+            if (!ctx) return;
+            
+            const chartCtx = ctx.getContext('2d');
+            const labels = [];
+            const completedData = [];
+            const backgroundColors = [];
+            
+            {% for category in categories %}
+            labels.push(categoryNames['{{ category }}']);
+            completedData.push({{ status_counts[category].completed }});
+            backgroundColors.push(chartColors.categoryColors[{{ loop.index0 }} % chartColors.categoryColors.length]);
+            {% endfor %}
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: completedData,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1500,
+                        easing: 'easeOutCubic'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#333',
+                            bodyColor: '#666',
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Inicializar gráfico de distribución general
+        initOverviewChart();
+        
+        // Función para inicializar gráficos de categorías
+        function initCategoryCharts() {
+            {% for category in categories %}
+            try {
+                const ctx = document.getElementById('chart-{{ category }}');
+                if (ctx) {
+                    const chartCtx = ctx.getContext('2d');
+                    
+                    // Destruir gráfico existente si lo hay
+                    if (categoryCharts['{{ category }}']) {
+                        categoryCharts['{{ category }}'].destroy();
+                    }
+                    
+                    // Crear nuevo gráfico con diseño mejorado
+                    categoryCharts['{{ category }}'] = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Completados', 'Pendientes'],
+                            datasets: [{
+                                data: [
+                                    {{ status_counts[category].completed }}, 
+                                    {{ status_counts[category].pending }}
+                                ],
+                                backgroundColor: [chartColors.completed, chartColors.pending],
+                                borderWidth: 0,
+                                hoverOffset: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '75%',
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true,
+                                duration: 1200,
+                                easing: 'easeOutQuart'
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    titleColor: '#333',
+                                    bodyColor: '#666',
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.raw || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = Math.round((value / total) * 100);
+                                            return `${label}: ${value} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        plugins: [{
+                            id: 'centerText',
+                            beforeDraw: function(chart) {
+                                // Añadir texto en el centro con el porcentaje
+                                const width = chart.width;
+                                const height = chart.height;
+                                const ctx = chart.ctx;
+                                ctx.restore();
+                                const fontSize = (height / 150).toFixed(2);
+                                ctx.font = fontSize + "em sans-serif";
+                                ctx.textBaseline = "middle";
+                                
+                                const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((chart.data.datasets[0].data[0] / total) * 100);
+                                const text = percentage + "%";
+                                
+                                ctx.fillStyle = "#333";
+                                ctx.textAlign = "center";
+                                ctx.font = "bold " + fontSize * 2.5 + "em sans-serif";
+                                ctx.fillText(text, width / 2, height / 2);
+                                
+                                ctx.font = fontSize * 0.8 + "em sans-serif";
+                                ctx.fillStyle = "#999";
+                                ctx.fillText("Completados", width / 2, height / 2 + fontSize * 25);
+                                ctx.save();
+                            }
+                        }]
+                    });
+                }
+            } catch (error) {
+                console.error('Error al inicializar gráfico para {{ category }}:', error);
+            }
+            {% endfor %}
+        }
+
+        // Inicializar gráficos de categorías
+        initCategoryCharts();
+
+        // Gráfico de tendencia
+        let trendChart;
+        
+        // Datos de tendencias
+        const trendLabels = {{ trend_labels|safe }};
+        const completedTrends = {
+            {% for category in categories %}
+            '{{ category }}': {{ completed_trends[category]|safe }},
+            {% endfor %}
+        };
+        const pendingTrends = {
+            {% for category in categories %}
+            '{{ category }}': {{ pending_trends[category]|safe }},
+            {% endfor %}
+        };
+        
+        function updateTrendChart(category) {
+            try {
+                const ctx = document.getElementById('trendChart');
+                if (!ctx) return;
+                
+                const chartCtx = ctx.getContext('2d');
+                
+                if (trendChart) {
+                    trendChart.destroy();
+                }
+                
+                trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [
+                            {
+                                label: 'Completados',
+                                data: completedTrends[category],
+                                borderColor: chartColors.completed,
+                                backgroundColor: chartColors.completedBg,
+                                tension: 0.4,
+                                fill: true,
+                                borderWidth: 3,
+                                pointBackgroundColor: chartColors.completed,
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: chartColors.completed,
+                                pointHoverBorderWidth: 3,
+                                pointHoverRadius: 6
+                            },
+                            {
+                                label: 'Pendientes',
+                                data: pendingTrends[category],
+                                borderColor: chartColors.pending,
+                                backgroundColor: chartColors.pendingBg,
+                                tension: 0.4,
+                                fill: true,
+                                borderWidth: 3,
+                                pointBackgroundColor: chartColors.pending,
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: chartColors.pending,
+                                pointHoverBorderWidth: 3,
+                                pointHoverRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(200, 200, 200, 0.2)',
+                                    borderDash: [5, 5]
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                titleColor: '#333',
+                                bodyColor: '#666',
+                                padding: 12,
+                                cornerRadius: 8,
+                                titleFont: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error al actualizar gráfico de tendencia:', error);
+            }
+        }
+        
+        // Inicializar gráfico de tendencia con la primera categoría
+        updateTrendChart('description');
+        
+        // Cambiar categoría en el gráfico de tendencia
+        document.getElementById('trendCategory').addEventListener('change', function() {
+            updateTrendChart(this.value);
+        });
+
+        // Función para filtrar las tarjetas y gráficos según la categoría seleccionada
+        function filterReportByCategory(category) {
+            // Mostrar mensaje de carga
+            const statusCards = document.getElementById('statusCards');
+            statusCards.classList.add('position-relative');
+            
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75';
+            loadingOverlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>';
+            loadingOverlay.style.zIndex = '10';
+            statusCards.appendChild(loadingOverlay);
+            
+            // Simular tiempo de carga (en una aplicación real, esto sería una llamada AJAX)
+            setTimeout(() => {
+                // Eliminar overlay de carga
+                statusCards.removeChild(loadingOverlay);
+                statusCards.classList.remove('position-relative');
+                
+                // Filtrar tarjetas de categoría
+                const categoryCards = document.querySelectorAll('.category-card');
+                const categoryCharts = document.querySelectorAll('.category-chart');
+                
+                if (category === 'all') {
+                    // Mostrar todas las categorías
+                    categoryCards.forEach(card => card.style.display = '');
+                    categoryCharts.forEach(chart => chart.style.display = '');
+                    
+                    // Actualizar el selector de tendencias para mostrar la primera categoría
+                    document.getElementById('trendCategory').value = 'description';
+                    updateTrendChart('description');
+                } else {
+                    // Mostrar solo la categoría seleccionada
+                    categoryCards.forEach(card => {
+                        card.style.display = card.dataset.category === category ? '' : 'none';
+                    });
+                    
+                    categoryCharts.forEach(chart => {
+                        chart.style.display = chart.dataset.category === category ? '' : 'none';
+                    });
+                    
+                    // Actualizar el selector de tendencias para mostrar la categoría seleccionada
+                    document.getElementById('trendCategory').value = category;
+                    updateTrendChart(category);
+                }
+                
+                // Mostrar mensaje de éxito
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed bottom-0 end-0 p-3';
+                toast.style.zIndex = '11';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-success text-white">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong class="me-auto">Informe generado</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            Informe de ${category === 'all' ? 'todos los productos' : categoryNames[category]} generado correctamente.
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Eliminar el toast después de 3 segundos
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 3000);
+            }, 800);
+        }
+
+        // Evento para los botones de filtrado de categoría
+        document.querySelectorAll('.category-filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.dataset.category;
+                filterReportByCategory(category);
+                
+                // Activar la pestaña de resumen
+                document.getElementById('summary-tab').click();
+                
+                // Desplazarse hasta la sección de estados
+                document.getElementById('statusCards').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+        
+        // Confirmar exportación
+        document.getElementById('confirmExport') && document.getElementById('confirmExport').addEventListener('click', function() {
+            // Obtener formato seleccionado
+            const format = document.querySelector('input[name="exportFormat"]:checked').value;
+            
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+            
+            // Simular exportación
+            setTimeout(function() {
+                const date = new Date().toLocaleDateString();
+                alert(`Exportando informe completo en formato ${format.toUpperCase()} con fecha ${date}.\nEn un entorno real, esto generaría un archivo para descargar.`);
+            }, 500);
+        });
+        
+        // Actualizar gráficos cuando se cambia de pestaña
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(event) {
+                if (event.target.id === 'charts-tab') {
+                    // Redimensionar gráficos de categorías
+                    Object.values(categoryCharts).forEach(chart => {
+                        if (chart) chart.resize();
+                    });
+                } else if (event.target.id === 'trends-tab') {
+                    // Redimensionar gráfico de tendencia
+                    if (trendChart) trendChart.resize();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

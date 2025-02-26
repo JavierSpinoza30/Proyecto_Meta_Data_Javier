@@ -1,0 +1,655 @@
+/* Variables de colores */
+:root {
+    --primary-color: #4361ee;
+    --primary-dark: #3a56d4;
+    --primary-light: #4895ef;
+    --secondary-color: #4cc9f0;
+    --success-color: #06d6a0;
+    --warning-color: #ffbe0b;
+    --danger-color: #ef476f;
+    --info-color: #118ab2;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    --border-radius: 0.75rem;
+    --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
+}
+
+/* Estilos base */
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+    background-color: #f5f7fa;
+    color: var(--gray-700);
+    transition: var(--transition);
+}
+
+/* Estilos personalizados */
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1020;
+    padding-top: 3.5rem;
+    background-color: #fff;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+    height: 100vh;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-300) transparent;
+}
+
+.sidebar .nav-link {
+    padding: 0.9rem 1.2rem;
+    color: var(--gray-700);
+    border-radius: 10px;
+    margin: 0.3rem 0.7rem;
+    transition: var(--transition);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.sidebar .nav-link:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(67, 97, 238, 0.15), transparent);
+    z-index: -1;
+    transition: var(--transition);
+}
+
+.sidebar .nav-link:hover {
+    color: var(--primary-color);
+    transform: translateX(3px);
+}
+
+.sidebar .nav-link:hover:before {
+    width: 100%;
+}
+
+.sidebar .nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.sidebar .nav-link.active:before {
+    display: none;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.7rem;
+    font-size: 1.2rem;
+    transition: var(--transition);
+}
+
+.sidebar .nav-link:hover i {
+    transform: scale(1.2);
+}
+
+/* Animaciones para el sidebar */
+@keyframes slideInSidebar {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInSidebar {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.sidebar.show {
+    animation: slideInSidebar 0.3s forwards;
+}
+
+.sidebar .position-sticky {
+    padding-top: 1rem;
+    height: auto;
+    padding-bottom: 6rem; /* Espacio para evitar que el contenido quede detrás del footer */
+}
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: fixed;
+        top: 60px; /* Altura del navbar */
+        left: -250px; /* Oculto inicialmente */
+        width: 250px !important;
+        height: calc(100vh - 60px);
+        z-index: 1025;
+        padding-bottom: 1rem;
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sidebar.show {
+        left: 0;
+    }
+    
+    /* Overlay para fondo oscurecido cuando sidebar está visible */
+    body:has(.sidebar.show)::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1019;
+        animation: fadeInSidebar 0.3s forwards;
+    }
+    
+    main.col-md-9 {
+        width: 100% !important;
+        margin-left: 0 !important;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Ajuste para pantallas medianas */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .sidebar {
+        width: 230px !important;
+    }
+    
+    main.col-md-9 {
+        width: calc(100% - 230px) !important;
+        margin-left: 230px !important;
+    }
+}
+
+/* Estilos para la tabla */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table th {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    padding: 15px 12px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    padding: 15px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.table tbody tr {
+    transition: var(--transition);
+    background-color: white;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+    position: relative;
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+/* Estilos para las badges */
+.badge {
+    padding: 8px 12px;
+    font-size: 0.85em;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #05b388) !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #fb8500) !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, var(--info-color), #06a0c7) !important;
+}
+
+/* Estilos para la paginación */
+.pagination {
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+.page-link {
+    color: var(--primary-color);
+    border-radius: 8px;
+    margin: 0 3px;
+    transition: var(--transition);
+    padding: 0.5rem 0.9rem;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.page-link:hover {
+    background-color: var(--primary-light);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(67, 97, 238, 0.2);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border-color: var(--primary-color);
+    box-shadow: 0 5px 10px rgba(67, 97, 238, 0.3);
+}
+
+.page-item.disabled .page-link {
+    color: var(--gray-400);
+    background-color: var(--gray-100);
+}
+
+/* Estilos para el navbar */
+.navbar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 1030;
+    padding-left: 1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    height: 60px;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, white, rgba(255, 255, 255, 0.8));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-toggler {
+    border: none;
+    padding: 0.4rem;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Ajuste para el contenido principal */
+main {
+    margin-top: 60px;
+    padding-top: 1.5rem;
+    min-height: calc(100vh - 120px);
+    background-color: #f5f7fa;
+    padding-bottom: 60px;
+}
+
+/* Estilos para el botón toggler del sidebar */
+.sidebar-toggler {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar-toggler {
+        display: block;
+    }
+}
+
+/* Estilos para las tarjetas */
+.card {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    border: none;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    background-color: white;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+    padding: 1.2rem 1.5rem;
+    border-bottom: none;
+}
+
+.card-header.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los indicadores de estado */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8);
+}
+
+.status-indicator.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.status-indicator.bg-warning {
+    background-color: var(--warning-color) !important;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: -1;
+    transition: var(--transition);
+}
+
+.btn:hover:after {
+    height: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border: none;
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #2845c0);
+    box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--info-color), #0a7999);
+    border: none;
+    box-shadow: 0 4px 10px rgba(17, 138, 178, 0.3);
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #0a7999, #086784);
+    box-shadow: 0 6px 15px rgba(17, 138, 178, 0.4);
+}
+
+.btn-light {
+    background: white;
+    border: none;
+    color: var(--gray-700);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-light:hover {
+    background: var(--gray-100);
+    color: var(--primary-color);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilo para iconos de producto */
+.product-icon {
+    background: linear-gradient(135deg, var(--gray-100), white);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+.clickable-row:hover .product-icon {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 15px rgba(67, 97, 238, 0.2);
+}
+
+.clickable-row:hover .product-icon i {
+    color: white !important;
+}
+
+/* Mejoras para inputs y selects */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid var(--gray-300);
+    padding: 0.6rem 1rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+}
+
+.input-group-text {
+    border-radius: 10px 0 0 10px;
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    padding: 0.6rem 1rem;
+}
+
+.input-group .form-control {
+    border-radius: 0 10px 10px 0;
+}
+
+.input-group .btn {
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+/* Estilos para el footer */
+.footer {
+    background-color: white !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03);
+    padding: 1rem 0;
+    position: relative;
+    margin-top: auto;
+    z-index: 1030; /* Aumentado para que tenga mayor prioridad que el sidebar */
+    width: 100%;
+    text-align: center;
+}
+
+.footer .text-muted {
+    font-weight: 500;
+    opacity: 0.8;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Ajuste para mejorar la visibilidad en dispositivos pequeños */
+@media (max-width: 767.98px) {
+    /* Asegurarse de que el footer siempre esté visible */
+    .footer {
+        position: relative;
+        z-index: 1050; /* Mayor que el sidebar en móviles */
+        border-top: 2px solid var(--primary-color);
+    }
+    
+    /* Ajuste para el contenido principal para dejar espacio al footer */
+    main {
+        padding-bottom: 80px; /* Más espacio para el footer */
+    }
+}
+
+/* Ajuste de footer para pantallas pequeñas y medianas */
+@media (max-width: 991.98px) {
+    .footer {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    .footer .container-fluid {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Ajustes específicos para cuando está visible el sidebar */
+@media (min-width: 768px) {
+    .footer .container-fluid {
+        padding-left: calc(16.66667% + 15px); /* Ajuste para compensar el espacio del sidebar en md */
+    }
+}
+
+@media (min-width: 992px) {
+    .footer .container-fluid {
+        padding-left: calc(16.66667% + 15px); /* Ajuste para compensar el espacio del sidebar en lg */
+    }
+}
+
+/* Efectos de animación y transición */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos para tablas responsivas */
+@media (max-width: 991.98px) {
+    .table-responsive {
+        padding-bottom: 0.5rem;
+    }
+    
+    .table th, .table td {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .product-icon {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .card-header .d-flex {
+        flex-direction: column;
+    }
+    
+    .card-header .gap-2 {
+        margin-top: 0.5rem;
+    }
+    
+    .badge {
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+}
+
+/* Estilos para las etiquetas de categoría en vista de productos */
+.category-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+    transition: var(--transition);
+    margin-right: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.category-badge:hover {
+    background-color: var(--primary-light);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
+}
+
+/* Estilo para nombre de producto */
+.product-name {
+    font-weight: 600;
+    color: var(--gray-800);
+    transition: var(--transition);
+}
+
+.clickable-row:hover .product-name {
+    color: var(--primary-color);
+}
+
+/* Estilos para las barras de progreso en el sidebar */
+.sidebar .progress {
+    height: 5px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: var(--gray-200);
+    margin-bottom: 1rem;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.sidebar .progress-bar {
+    transition: width 0.6s ease;
+}
+
+.sidebar .progress-bar.bg-success {
+    background: linear-gradient(90deg, var(--success-color), #05b388) !important;
+}
+
+.sidebar .progress-bar.bg-warning {
+    background: linear-gradient(90deg, var(--warning-color), #fb8500) !important;
+}
