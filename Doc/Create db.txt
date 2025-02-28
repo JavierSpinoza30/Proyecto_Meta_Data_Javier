@@ -1,0 +1,135 @@
+CREATE TABLE attribute_values (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    base_attribute_code VARCHAR(255) NOT NULL,
+    attribute_code VARCHAR(255) NOT NULL,
+    value_id INT NOT NULL,
+    label VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE products (
+    id INT PRIMARY KEY,
+    sku VARCHAR(255) UNIQUE,
+    name VARCHAR(255),
+    type_id VARCHAR(100),
+    category TEXT,
+    meta_title TEXT,
+    meta_keyword TEXT,
+    meta_description TEXT,
+    description LONGTEXT,
+    status_product_meta_title VARCHAR(50),
+    status_product_keyword VARCHAR(50),
+    status_product_meta_description VARCHAR(50),
+    status_product_description VARCHAR(50),
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE product_category_info (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sku VARCHAR(64) NOT NULL,
+    category_id INT NOT NULL,
+    category_level INT NOT NULL,
+    category_path TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_sku_category (sku, category_id)
+);
+
+CREATE TABLE execution_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    last_execution DATETIME,
+    last_truncate DATETIME
+);
+
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE attribute_values;
+TRUNCATE TABLE products;
+TRUNCATE TABLE attributes_products;
+TRUNCATE TABLE execution_log;
+TRUNCATE TABLE product_category_info;
+SET FOREIGN_KEY_CHECKS = 1;
+
+UPDATE products
+SET category = NULL;
+
+SELECT *
+FROM products
+WHERE status_product_description = "pending"
+AND type_id = "configurable";
+
+-- productos con minimo 6 atributos trayendo el id y el sku
+SELECT p.id, p.sku, COUNT(ap.id) AS attribute_count
+FROM products p
+JOIN attributes_products ap ON p.id = ap.product_id
+GROUP BY p.id
+HAVING COUNT(ap.id) >= 6;
+
+-- total productos pendientes por meta title con almenos 0 atributos trayendo el sku y el id del producto
+SELECT
+p.id, p.type_id, p.sku, p.name, p.meta_title, p.status_product_meta_title,
+GROUP_CONCAT(
+    JSON_OBJECT(
+        'code', av.attribute_code,
+        'label', av.label
+    )
+) as attributes
+FROM products p
+LEFT JOIN attributes_products ap ON p.id = ap.product_id
+LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
+WHERE p.status_product_meta_title = 'pending' OR p.status_product_meta_title IS NULL
+GROUP BY p.id
+HAVING COUNT(ap.attribute_value_id) >= 2
+
+-- total productos pendientes por meta keywords con almenos 0 atributos trayendo el sku y el id del producto
+SELECT
+p.id, p.type_id, p.sku, p.name, p.meta_keyword, p.status_product_keyword,
+GROUP_CONCAT(
+    JSON_OBJECT(
+        'code', av.attribute_code,
+        'label', av.label
+    )
+) as attributes
+FROM products p
+LEFT JOIN attributes_products ap ON p.id = ap.product_id
+LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
+WHERE p.status_product_keyword = 'pending' OR p.status_product_keyword IS NULL
+GROUP BY p.id
+HAVING COUNT(ap.attribute_value_id) >= 0
+
+-- total productos pendientes por status_product_meta_description con almenos 0 atributos trayendo el sku y el id del producto
+SELECT
+p.id, p.type_id, p.sku, p.name, p.meta_description, p.status_product_meta_description,
+GROUP_CONCAT(
+    JSON_OBJECT(
+        'code', av.attribute_code,
+        'label', av.label
+    )
+) as attributes
+FROM products p
+LEFT JOIN attributes_products ap ON p.id = ap.product_id
+LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
+WHERE p.status_product_meta_description = 'pending' OR p.status_product_meta_description IS NULL
+GROUP BY p.id
+HAVING COUNT(ap.attribute_value_id) >= 0
+
+-- total productos pendientes por status_product_description con almenos 0 atributos trayendo el sku y el id del producto
+SELECT
+p.id, p.type_id, p.sku, p.name, p.description, p.status_product_description,
+GROUP_CONCAT(
+    JSON_OBJECT(
+        'code', av.attribute_code,
+        'label', av.label
+    )
+) as attributes
+FROM products p
+LEFT JOIN attributes_products ap ON p.id = ap.product_id
+LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
+WHERE p.status_product_description = 'pending' OR p.status_product_description IS NULL
+GROUP BY p.id
+HAVING COUNT(ap.attribute_value_id) >= 0
+
+-- TRAE LOS PRODUCTOS DONDE EL NAME ES NULL O VACIO
+SELECT * 
+FROM products
+WHERE name IS NULL OR name = '';
+
+SELECT * FROM products WHERE status_product_meta_title = "pending";
