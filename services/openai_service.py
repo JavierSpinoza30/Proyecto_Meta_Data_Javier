@@ -142,6 +142,7 @@ class OpenAIService:
         # Formatear correctamente el contenido
         formatted_content = description_content.replace('\n', '</p>\r\n<p>').replace('\r', '')
         return base_template.format(product_name, formatted_content)
+    # fin generar descripcion de los productos
     
     def generate_meta_keywords(self, product_data):
         """

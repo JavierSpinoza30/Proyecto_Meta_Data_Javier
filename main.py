@@ -69,38 +69,38 @@ def main():
 
         db.disconnect()
 
-    # Procesamiento de atributos
-    print("Procesando atributos...")
-    attribute_service = AttributeService()
-    attribute_service.process_all_attributes()
+    # # Procesamiento de atributos
+    # print("Procesando atributos...")
+    # attribute_service = AttributeService()
+    # attribute_service.process_all_attributes()
 
-    # Procesamiento de productos y crear relacion con atributos
-    print("\nProcesando productos...")
-    product_service = ProductService()
-    product_service.save_to_database()
+    # # Procesamiento de productos y crear relacion con atributos
+    # print("\nProcesando productos...")
+    # product_service = ProductService()
+    # product_service.save_to_database()
 
-    # Procesamiento de categorías de productos
-    print("\n🚀 Iniciando servicio de categorías de productos...")
-    category_service = CategoryProductsService()
-    try:
-        category_service.save_category_products_to_db()
-    except KeyboardInterrupt:
-        print("\n👋 Servicio de categorías detenido por el usuario")
-
-    # Procesamiento de asignar categorías a los productos
-    print("\n🚀 Iniciando servicio de asignar categorías a los productos...")
-    try:
-        UpdateProductCategories()
-    except KeyboardInterrupt:
-        print("\n👋 Servicio de asignar categorías a los productos detenido por el usuario")
-
-    # # Servicio de meta titles de productos
-    # print("\n🚀 Iniciando servicio de meta titles de productos...")
-    # meta_title_controller = MetaTitleController()
+    # # Procesamiento de categorías de productos
+    # print("\n🚀 Iniciando servicio de categorías de productos...")
+    # category_service = CategoryProductsService()
     # try:
-    #     meta_title_controller.run_meta_title_service()
+    #     category_service.save_category_products_to_db()
     # except KeyboardInterrupt:
-    #     print("\n👋 Servicio de meta titles detenido por el usuario")
+    #     print("\n👋 Servicio de categorías detenido por el usuario")
+
+    # # Procesamiento de asignar categorías a los productos
+    # print("\n🚀 Iniciando servicio de asignar categorías a los productos...")
+    # try:
+    #     UpdateProductCategories()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de asignar categorías a los productos detenido por el usuario")
+
+    # Servicio de meta titles de productos
+    print("\n🚀 Iniciando servicio de meta titles de productos...")
+    meta_title_controller = MetaTitleController()
+    try:
+        meta_title_controller.run_meta_title_service()
+    except KeyboardInterrupt:
+        print("\n👋 Servicio de meta titles detenido por el usuario")
 
     # # Servicio de meta keywords de productos
     # print("\n🚀 Iniciando servicio de meta keywords de productos...")
