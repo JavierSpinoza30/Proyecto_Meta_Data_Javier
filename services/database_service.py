@@ -3,15 +3,17 @@ from database import DatabaseConnection
 class ProductService:
     def __init__(self):
         self.db = DatabaseConnection()
-
+    # productos pendientes por description
     def get_pending_products(self):
         """
-        Obtiene los productos pendientes con al menos 6 atributos
+        Obtiene los productos pendientes que cumplan al menos una de estas condiciones:
+        - Tener 6 o más atributos asignados
+        - Tener 4 o más categorías asignadas
         """
         connection = self.db.connect()
         cursor = connection.cursor(dictionary=True)
         
-        # consulta trae los productos pendientes
+        # Consulta trae los productos pendientes que cumplan con los criterios de atributos o categorías
         try:
             query = """
                 SELECT
@@ -27,7 +29,8 @@ class ProductService:
                 LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
                 WHERE p.status_product_description = 'pending'
                 GROUP BY p.id
-                HAVING COUNT(ap.attribute_value_id) >= 6
+                HAVING (COUNT(ap.attribute_value_id) >= 6) OR 
+                       (LENGTH(p.category) - LENGTH(REPLACE(p.category, '>', '')) + 1 >= 4)
             """
             cursor.execute(query)
             return cursor.fetchall()

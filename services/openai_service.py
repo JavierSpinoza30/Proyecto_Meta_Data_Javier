@@ -11,39 +11,106 @@ class OpenAIService:
 
     def generate_product_description(self, product_data):
         """
-        Genera una descripción del producto basada en sus atributos
+        Genera una descripción del producto basada en sus atributos y categorías
         """
-        # Construir el prompt con los atributos del producto
+        # Obtener el número de atributos y categorías
+        num_attributes = len(product_data['attributes']) if product_data.get('attributes') else 0
+        categories = product_data.get('category', '').split(' > ')
+        num_categories = len(categories)
+        
+        # Identificar el contexto principal del producto
+        main_category = categories[0] if categories else ''
+        product_context = self._get_product_context(main_category, product_data['name'])
+        
+        # Construir el prompt con los atributos y categorías del producto
         prompt = f"""
-        Genera una descripción atractiva y SEO friendly para este producto:
+        Genera una descripción técnica y comercial para este producto:
         
         Nombre: {product_data['name']}
         Tipo: {product_data['type_id']}
-        Atributos:
-        {self._format_attributes(product_data['attributes'])}
+        Contexto: {product_context}
+        Jerarquía de Categorías: {' > '.join(categories) if categories else 'No disponible'}
+        
+        {'Atributos Técnicos:' if num_attributes > 0 else 'IMPORTANTE: Este producto no tiene atributos técnicos específicos documentados'}
+        {self._format_attributes(product_data['attributes']) if num_attributes > 0 else ''}
+        
+        INSTRUCCIONES ESPECÍFICAS:
+        {self._get_context_instructions(num_attributes, num_categories, main_category)}
+        
+        REGLAS ESTRICTAS PARA LA FICHA TÉCNICA:
+        1. NO INVENTES características técnicas que no estén en los atributos proporcionados
+        2. Si no hay atributos técnicos, la ficha técnica SOLO debe incluir:
+           - Tipo de producto: {product_data['type_id']}
+           - Categoría principal: {main_category}
+           - Aplicación: {categories[-1] if categories else 'General'}
+        3. NO agregues especificaciones inventadas de:
+           - Materiales
+           - Dimensiones
+           - Colores
+           - Características técnicas no documentadas
         
         La descripción debe ser detallada, enfocada en beneficios y características principales.
         DEBE USAR ESTE FORMATO HTML:
         
         <h1 data-content-type="heading">[NOMBRE DEL PRODUCTO AQUÍ]</h1>
         [CONTENIDO DESCRIPTIVO AQUÍ CON PÁRRAFOS, LISTAS Y ELEMENTOS HTML como <strong> ]
-        <p><strong>Ficha técnica:</strong><br>[LISTA DE ESPECIFICACIONES TÉCNICAS]</p>
+        {'<p><strong>Ficha técnica:</strong><br>[USAR SOLO LOS ATRIBUTOS PROPORCIONADOS, NO INVENTAR]</p>' if num_attributes > 0 else '<p><strong>Información General:</strong><br>[SOLO TIPO, CATEGORÍA Y APLICACIÓN]</p>'}
         <p>[AGREGAR UN PÁRRAFO FINAL QUE RESUMA LOS BENEFICIOS DEL PRODUCTO Y LLAME A LA ACCIÓN]</p>
         
         Debes usar negritas con <strong> y saltos de línea con <br>, no puedes incluir otros caracteres como **. NO INCLUIR el estilo inicial, solo el contenido.
         """
 
         response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Eres un experto en marketing, SEO y descripción de productos. Tu objetivo es crear descripciones atractivas y optimizadas para motores de búsqueda que destaquen los beneficios clave del producto."},
+                {"role": "system", "content": f"Eres un experto técnico en {product_context}. Tu objetivo es crear descripciones precisas y técnicamente correctas que ayuden a los compradores a entender el producto y su aplicación específica. NUNCA debes inventar especificaciones técnicas no proporcionadas."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=780    # Limita la respuesta a ~500 palabras
+            temperature=0.5,  # Reducido para mayor consistencia y menos creatividad
+            max_tokens=800
         )
 
         return self._wrap_in_html_template(response.choices[0].message.content)
+
+    def _get_product_context(self, main_category, product_name):
+        """
+        Determina el contexto técnico del producto basado en su categoría principal y nombre
+        """
+        context_map = {
+            'MOTOS': 'repuestos y componentes de motocicletas',
+            'BICICLETAS': 'bicicletas y sus componentes',
+            'REPUESTOS': 'repuestos y accesorios para vehículos',
+            'ACCESORIOS': 'accesorios y equipamiento para ciclismo y motociclismo'
+        }
+        return context_map.get(main_category, 'productos automotrices y de ciclismo')
+
+    def _get_context_instructions(self, num_attributes, num_categories, main_category):
+        """
+        Genera instrucciones específicas basadas en la cantidad de atributos y categorías disponibles
+        """
+        if num_attributes >= 6:
+            return f"""
+            - Este es un producto técnico de {main_category.lower()} - mantén un enfoque técnico y preciso
+            - Utiliza SOLO los atributos disponibles para detallar especificaciones técnicas
+            - Menciona compatibilidad y aplicaciones específicas
+            - Incluye información sobre instalación o uso si es relevante
+            """
+        elif num_categories >= 4:
+            return f"""
+            - Este es un producto técnico de {main_category.lower()} con {num_categories} niveles de especialización
+            - Enfatiza el uso específico y aplicación técnica según su categorización
+            - Describe la función específica del componente en el sistema o vehículo
+            - {'Usa ÚNICAMENTE los ' + str(num_attributes) + ' atributos técnicos disponibles' if num_attributes > 0 else 'NO INVENTES especificaciones técnicas, céntrate en la función y aplicación específica del componente'}
+            - Menciona compatibilidad con modelos específicos SOLO si está en las categorías
+            - Incluye información sobre instalación o mantenimiento general
+            """
+        else:
+            return f"""
+            - Este es un producto técnico de {main_category.lower()} - mantén el enfoque técnico
+            - Describe la función específica del componente sin inventar especificaciones
+            - Menciona compatibilidad y aplicaciones según las categorías proporcionadas
+            - NO agregues características técnicas que no estén documentadas
+            """
 
     def _format_attributes(self, attributes):
         # Formatea los atributos para el prompt con nombres en negrita

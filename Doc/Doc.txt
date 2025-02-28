@@ -1,0 +1,6 @@
+1. Guarda los atributos -> attribute_service.py
+2. Guarda los productos, adicional en una tabla intermedia hace la relacion de los atributos que tiene cada producto -> product_service.py
+3. Guarda las categorias -> category_products_service.py
+4. Asigna las categorias al producto -> categoty_update_products.py
+
+5. Generar con IA los Meta Datos
