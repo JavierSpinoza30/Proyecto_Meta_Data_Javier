@@ -1,17 +1,17 @@
 {
-  "name": "proyecto_description_importaciones",
+  "name": "generar_meta_data_productos",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "appMetaData.py",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "pm2 start appImp.py",
-    "stop": "pm2 stop appImp.py",
-    "restart": "pm2 restart appImp.py",
+    "start": "pm2 start appMetaData.py",
+    "stop": "pm2 stop appMetaData.py",
+    "restart": "pm2 restart appMetaData.py",
     "status": "pm2 status"
   },
-  "author": "",
+  "author": "Javier Spinoza Pico",
   "license": "ISC",
-  "description": "",
+  "description": "Servicio para generar SEO meta data de productos de rutavity",
   "dependencies": {
     "pm2": "^5.4.3"
   }
