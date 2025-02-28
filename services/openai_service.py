@@ -238,7 +238,7 @@ class OpenAIService:
         {self._format_attributes(product_data['attributes'])}
         
         REGLAS IMPORTANTES QUE DEBES CUMPLIR:
-        1. Longitud máxima: 45-50 caracteres
+        1. Longitud máxima: 50-60 caracteres
         2. Debe incluir la marca/nombre del producto
         3. Debe incluir una palabra clave principal
         4. Estructura según tipo de producto:
