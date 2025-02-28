@@ -3,6 +3,7 @@ from product_service import ProductService
 from controllers.description_controller import DescriptionController
 from controllers.meta_keywords_controller import MetaKeywordsController
 from controllers.meta_title_controller import MetaTitleController
+from Categories.category_products_service import CategoryProductsService
 from database import DatabaseConnection
 from datetime import datetime, timedelta
 
@@ -77,6 +78,14 @@ def main():
     # product_service = ProductService()
     # product_service.save_to_database()
 
+    # Procesamiento de categorías de productos
+    print("\n🚀 Iniciando servicio de categorías de productos...")
+    category_service = CategoryProductsService()
+    try:
+        category_service.save_category_products_to_db()
+    except KeyboardInterrupt:
+        print("\n👋 Servicio de categorías detenido por el usuario")
+
     # Servicio de meta keywords de productos
     # print("\n🚀 Iniciando servicio de meta keywords de productos...")
     # meta_keywords_controller = MetaKeywordsController()
@@ -86,12 +95,12 @@ def main():
     #     print("\n👋 Servicio de meta keywords detenido por el usuario")
 
     # Servicio de meta titles de productos
-    print("\n🚀 Iniciando servicio de meta titles de productos...")
-    meta_title_controller = MetaTitleController()
-    try:
-        meta_title_controller.run_meta_title_service()
-    except KeyboardInterrupt:
-        print("\n👋 Servicio de meta titles detenido por el usuario")
+    # print("\n🚀 Iniciando servicio de meta titles de productos...")
+    # meta_title_controller = MetaTitleController()
+    # try:
+    #     meta_title_controller.run_meta_title_service()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de meta titles detenido por el usuario")
 
     # # Servicio de descripción de productos
     # print("\n🚀 Iniciando servicio de descripción de productos...")
