@@ -24,6 +24,14 @@ CREATE TABLE products (
     updated_at DATETIME
 );
 
+CREATE TABLE attributes_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    attribute_value_id INT NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (attribute_value_id) REFERENCES attribute_values(id) ON DELETE CASCADE
+);
+
 CREATE TABLE product_category_info (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sku VARCHAR(64) NOT NULL,
@@ -48,13 +56,9 @@ TRUNCATE TABLE execution_log;
 TRUNCATE TABLE product_category_info;
 SET FOREIGN_KEY_CHECKS = 1;
 
+-- PONER EN NULL LAS CATEGORIAS DE LA TABLA PRODUCTOS
 UPDATE products
 SET category = NULL;
-
-SELECT *
-FROM products
-WHERE status_product_description = "pending"
-AND type_id = "configurable";
 
 -- productos con minimo 6 atributos trayendo el id y el sku
 SELECT p.id, p.sku, COUNT(ap.id) AS attribute_count
@@ -125,11 +129,42 @@ LEFT JOIN attributes_products ap ON p.id = ap.product_id
 LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
 WHERE p.status_product_description = 'pending' OR p.status_product_description IS NULL
 GROUP BY p.id
-HAVING COUNT(ap.attribute_value_id) >= 0
+HAVING COUNT(ap.attribute_value_id) >= 6
 
--- TRAE LOS PRODUCTOS DONDE EL NAME ES NULL O VACIO
+-- PRODUCTOS CON ALMENOS 4 CATEGORIAS
+SELECT sku
+FROM products
+WHERE status_product_description = 'pending'
+AND LENGTH(category) - LENGTH(REPLACE(category, '>', '')) >= 3;
+
+-- PRODUCTOS CON ESTADO PENDIENTE DE X ALGO
+SELECT * FROM products WHERE status_product_meta_title = "pending";
+
+-- Productos con almenos 6 atributos o almenos 4 categorias en estado pendiente de descripcion
+SELECT p.id, p.sku, p.name, p.category, p.status_product_description
+FROM products p
+LEFT JOIN attributes_products ap ON p.id = ap.product_id
+LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
+WHERE p.status_product_description = 'pending'
+GROUP BY p.id
+HAVING 
+    COUNT(DISTINCT av.id) >= 6  -- Al menos 6 atributos
+    OR
+LENGTH(p.category) - LENGTH(REPLACE(p.category, '>', '')) + 1 >= 4;  -- Al menos 4 categorías
+
+
+-- CONSULTAR PRODUCTOS DONDE EL META TITLE TENGA " o MTB al inicio
 SELECT * 
 FROM products
-WHERE name IS NULL OR name = '';
+WHERE meta_title LIKE '%"%' ;
 
-SELECT * FROM products WHERE status_product_meta_title = "pending";
+SELECT * 
+FROM products
+WHERE meta_title LIKE 'MTB%';
+
+UPDATE products
+SET status_product_meta_title = 'pending'
+WHERE sku IN ('BIAQX1321-29M52-E',
+'BICTR1021-29M02',
+'BICTR1021-29M02-E',
+'BICTR1021-29M03');

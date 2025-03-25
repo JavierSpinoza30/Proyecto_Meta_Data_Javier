@@ -102,13 +102,13 @@ def main():
     except KeyboardInterrupt:
         print("\n👋 Servicio de meta titles detenido por el usuario")
 
-    # # Servicio de meta keywords de productos
-    # print("\n🚀 Iniciando servicio de meta keywords de productos...")
-    # meta_keywords_controller = MetaKeywordsController()
-    # try:
-    #     meta_keywords_controller.run_meta_keywords_service()
-    # except KeyboardInterrupt:
-    #     print("\n👋 Servicio de meta keywords detenido por el usuario")
+    # Servicio de meta keywords de productos
+    print("\n🚀 Iniciando servicio de meta keywords de productos...")
+    meta_keywords_controller = MetaKeywordsController()
+    try:
+        meta_keywords_controller.run_meta_keywords_service()
+    except KeyboardInterrupt:
+        print("\n👋 Servicio de meta keywords detenido por el usuario")
 
     # # Servicio de descripción de productos
     # print("\n🚀 Iniciando servicio de descripción de productos...")
@@ -117,7 +117,6 @@ def main():
     #     description_controller.run_description_service()
     # except KeyboardInterrupt:
     #     print("\n👋 Servicio de descripción detenido por el usuario")
-
     # print("\nProceso completado!")
 
 if __name__ == "__main__":
