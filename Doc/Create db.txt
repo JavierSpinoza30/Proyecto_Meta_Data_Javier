@@ -42,6 +42,43 @@ CREATE TABLE product_category_info (
     UNIQUE KEY unique_sku_category (sku, category_id)
 );
 
+CREATE TABLE review_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,
+    created_at DATETIME,
+    entity_id INT,
+    entity_pk_value INT,
+    status_id INT,
+    title VARCHAR(255),
+    detail TEXT,
+    nickname VARCHAR(100),
+    customer_id INT NULL,            -- Permitimos NULL cuando no esté disponible
+    product_name VARCHAR(255),
+    product_sku VARCHAR(50),
+    -- Campos para análisis con IA
+    sentiment_score FLOAT NULL,      -- Para análisis de sentimiento 
+    keywords TEXT NULL,              -- Palabras clave extraídas
+    -- Índices para optimización
+    INDEX idx_product_sku (product_sku),
+    INDEX idx_product_name (product_name),
+    INDEX idx_created_at (created_at),
+    UNIQUE INDEX idx_review_id (review_id)    -- Garantiza no duplicar reviews
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE review_ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,          -- Conecta con el review_id de product_reviews
+    rating_id INT,
+    rating_code VARCHAR(50),
+    value INT,
+    percent INT,
+    -- Relación con la tabla principal
+    FOREIGN KEY (review_id) REFERENCES review_products(review_id) ON DELETE CASCADE,
+    -- Índices
+    INDEX idx_review_id (review_id),
+    INDEX idx_rating_code (rating_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE execution_log (
     id INT AUTO_INCREMENT PRIMARY KEY,
     last_execution DATETIME,
@@ -52,8 +89,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE attribute_values;
 TRUNCATE TABLE products;
 TRUNCATE TABLE attributes_products;
-TRUNCATE TABLE execution_log;
 TRUNCATE TABLE product_category_info;
+TRUNCATE TABLE execution_log;
+TRUNCATE TABLE review_products;
+TRUNCATE TABLE review_ratings;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- PONER EN NULL LAS CATEGORIAS DE LA TABLA PRODUCTOS
@@ -141,7 +180,7 @@ AND LENGTH(category) - LENGTH(REPLACE(category, '>', '')) >= 3;
 SELECT * FROM products WHERE status_product_meta_title = "pending";
 
 -- Productos con almenos 6 atributos o almenos 4 categorias en estado pendiente de descripcion
-SELECT p.id, p.sku, p.name, p.category, p.status_product_description
+SELECT p.id, p.sku, p.type_id, p.name, p.category, p.status_product_description
 FROM products p
 LEFT JOIN attributes_products ap ON p.id = ap.product_id
 LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
@@ -160,7 +199,7 @@ WHERE meta_title LIKE '%"%' ;
 
 SELECT * 
 FROM products
-WHERE meta_title LIKE 'MTB%';
+WHERE meta_description LIKE 'MTB%';
 
 UPDATE products
 SET status_product_meta_title = 'pending'

@@ -1,0 +1,23 @@
+# Este servicio gestiona la moderación automática de reviews de productos mediante IA.
+# Consulta periódicamente la API de Magento para obtener reviews pendientes, las evalúa
+# con OpenAI y actualiza su estado a aprobado o pendiente de revisión humana.
+# Los logs se almacenan exclusivamente en el directorio logs/ del proyecto para evitar
+# llenar el disco del sistema.
+
+[Unit]
+Description=Servicio de Moderación de Reviews Rutavity
+After=network.target
+
+[Service]
+User=user-magento
+WorkingDirectory=/var/www/html/GenerarMetaDataSeoRutavity
+ExecStart=/usr/bin/python3 /var/www/html/GenerarMetaDataSeoRutavity/review_daemon.py
+Restart=always
+RestartSec=10
+StandardOutput=null
+StandardError=null
+SyslogIdentifier=review-moderator
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target 
