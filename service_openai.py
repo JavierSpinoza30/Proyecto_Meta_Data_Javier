@@ -11,7 +11,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 stream = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
     messages=[
                 {"role": "system", "content": "Eres un experto en SEO de Magento"},
                 {"role": "user", "content": "Hola como estas"}

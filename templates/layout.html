@@ -17,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style-chat-bot.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -71,6 +72,11 @@
                                     <i class="bi bi-magic"></i> Generar Descripciones
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.path == '/chatbot' %}active{% endif %}" href="{{ url_for('chatbot') }}">
+                                    <i class="bi bi-chat-dots-fill"></i> Chatbot de Reseñas
+                                </a>
+                            </li>
                             <li class="nav-item mt-2">
                                 <div class="nav-link text-muted small">
                                     <i class="bi bi-layers"></i> Configuración
@@ -102,14 +108,14 @@
                                 <small class="text-success">{{ quick_stats.completed_percentage }}%</small>
                             </div>
                             <div class="progress mb-3">
-                                <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{ quick_stats.completed_percentage }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ quick_stats.completed_percentage }}%"></div>
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ quick_stats.completed_percentage }}%" aria-valuenow="{{ quick_stats.completed_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                             <div class="d-flex justify-content-between mb-1">
                                 <small>Productos pendientes</small>
                                 <small class="text-warning">{{ quick_stats.pending_percentage }}%</small>
                             </div>
                             <div class="progress mb-3">
-                                <div class="progress-bar bg-warning" role="progressbar" aria-valuenow="{{ quick_stats.pending_percentage }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ quick_stats.pending_percentage }}%"></div>
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ quick_stats.pending_percentage }}%" aria-valuenow="{{ quick_stats.pending_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                     </div>

@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from database import DatabaseConnection
 from math import ceil
 from controllers.description_controller import DescriptionController
 from datetime import datetime, timedelta
 import json
+
+# Agregar importación del controlador de chatbot
+from controllers.chatbot_controller import ChatbotController
 
 app = Flask(__name__)
 
@@ -303,6 +306,35 @@ def process_descriptions():
     controller = DescriptionController()
     controller.process_pending_descriptions()
     return redirect(url_for('index'))
+
+# Nuevas rutas para el chatbot
+@app.route('/chatbot')
+def chatbot():
+    """Ruta para la interfaz del chatbot"""
+    bot_controller = ChatbotController()
+    review_stats = bot_controller.get_review_stats()
+    
+    # Pasar la hora actual para el mensaje inicial
+    current_time = datetime.now().strftime("%H:%M")
+    
+    return render_template('chatbot.html', review_stats=review_stats, current_time=current_time)
+
+@app.route('/chatbot/api', methods=['POST'])
+def chatbot_api():
+    """API para procesar mensajes del chatbot"""
+    if not request.is_json:
+        return jsonify({"error": "Solicitud inválida, se esperaba JSON"}), 400
+        
+    data = request.get_json()
+    
+    if 'message' not in data:
+        return jsonify({"error": "El mensaje es requerido"}), 400
+    
+    # Procesar la consulta del usuario
+    bot_controller = ChatbotController()
+    response = bot_controller.process_query(data['message'])
+    
+    return jsonify({"response": response})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5015)

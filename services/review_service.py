@@ -3,7 +3,7 @@ import json
 import os
 from dotenv import load_dotenv
 import time
-from openai import OpenAI
+from google import genai
 
 # Cargar variables de entorno
 load_dotenv()
@@ -18,8 +18,8 @@ class ReviewService:
             'Content-Type': 'application/json'
         }
         
-        # Inicializar cliente OpenAI
-        self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        # Inicializar cliente de Google Gemini
+        self.gemini_client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
         
         # Estados de reviews
         self.APPROVED = 1
@@ -243,7 +243,7 @@ class ReviewService:
                 print("⚠️ Review sin título ni contenido, enviando a revisión humana")
                 return self.PENDING_HUMAN_REVIEW
             
-            # Prompt para OpenAI
+            # Prompt para Gemini
             prompt = f"""
             Evalúa la siguiente reseña de producto para determinar si contiene lenguaje inapropiado, 
             groserías, insultos, contenido ofensivo, spam o información irrelevante al producto.
@@ -259,17 +259,11 @@ class ReviewService:
             Responde solo con "APROBAR" o "REVISAR MANUALMENTE".
             """
             
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "Eres un sistema automatizado de moderación de reseñas de productos. Tu trabajo es identificar contenido inapropiado, ofensivo, spam o irrelevante."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=10,
-                temperature=0.0
+            response = self.gemini_client.models.generate_content(
+                model="gemini-2.0-flash", contents=prompt
             )
             
-            result = response.choices[0].message.content.strip()
+            result = response.text.strip()
             print(f"🤖 Decisión de IA: {result}")
             
             if "APROBAR" in result:
