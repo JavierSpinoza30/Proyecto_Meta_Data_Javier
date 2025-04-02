@@ -22,6 +22,9 @@
     --border-radius: 0.75rem;
     --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     --transition: all 0.3s ease;
+    /* Variables para gradientes */
+    --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    --gradient-purple: linear-gradient(135deg, #6a11cb, #2575fc);
 }
 
 /* Estilos base */

@@ -61,7 +61,7 @@ class OpenAIService:
         """
 
         response = self.client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": f"Eres un experto técnico en {product_context}. Tu objetivo es crear descripciones precisas y técnicamente correctas que ayuden a los compradores a entender el producto y su aplicación específica. NUNCA debes inventar especificaciones técnicas no proporcionadas."},
                 {"role": "user", "content": prompt}

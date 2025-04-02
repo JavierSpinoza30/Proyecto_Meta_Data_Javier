@@ -58,10 +58,15 @@ CREATE TABLE review_products (
     -- Campos para análisis con IA
     sentiment_score FLOAT NULL,      -- Para análisis de sentimiento 
     keywords TEXT NULL,              -- Palabras clave extraídas
+    ai_summary TEXT NULL,           -- Resumen generado por IA de la reseña
+    topics TEXT NULL,               -- Temas detectados (ej: "calidad,durabilidad,precio")
+    processed_at DATETIME NULL,     -- Cuándo fue analizada por IA
+    review_rating FLOAT NULL,       -- Rating promedio asociado a esta reseña
     -- Índices para optimización
     INDEX idx_product_sku (product_sku),
     INDEX idx_product_name (product_name),
     INDEX idx_created_at (created_at),
+    INDEX idx_sentiment_score (sentiment_score),
     UNIQUE INDEX idx_review_id (review_id)    -- Garantiza no duplicar reviews
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
