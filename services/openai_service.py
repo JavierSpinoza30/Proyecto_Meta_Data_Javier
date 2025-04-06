@@ -1,4 +1,5 @@
-from openai import OpenAI
+from google import genai
+from google.genai import types
 import os
 from dotenv import load_dotenv  # Importar dotenv
 
@@ -7,7 +8,7 @@ load_dotenv()
 
 class OpenAIService:
     def __init__(self):
-        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 
     def generate_product_description(self, product_data):
         """
@@ -60,17 +61,20 @@ class OpenAIService:
         Debes usar negritas con <strong> y saltos de línea con <br>, no puedes incluir otros caracteres como **. NO INCLUIR el estilo inicial, solo el contenido.
         """
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": f"Eres un experto técnico en {product_context}. Tu objetivo es crear descripciones precisas y técnicamente correctas que ayuden a los compradores a entender el producto y su aplicación específica. NUNCA debes inventar especificaciones técnicas no proporcionadas."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,  # Reducido para mayor consistencia y menos creatividad
-            max_tokens=800
+        # Configuración del sistema para Gemini
+        system_instruction = f"Eres un experto técnico en {product_context}. Tu objetivo es crear descripciones precisas y técnicamente correctas que ayuden a los compradores a entender el producto y su aplicación específica. NUNCA debes inventar especificaciones técnicas no proporcionadas."
+
+        response = self.client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.5,
+                max_output_tokens=800
+            ),
+            contents=prompt
         )
 
-        return self._wrap_in_html_template(response.choices[0].message.content)
+        return self._wrap_in_html_template(response.text)
 
     def _get_product_context(self, main_category, product_name):
         """
@@ -206,17 +210,20 @@ class OpenAIService:
         - HERRAMIENTAS usan "herramienta", "llave", términos técnicos específicos'''}
         """
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Eres un experto en SEO y marketing de bicicletas. Genera keywords que coincidan EXACTAMENTE con lo que los compradores buscan, incluyendo términos cortos y directos."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5
+        # Configuración del sistema para Gemini
+        system_instruction = "Eres un experto en SEO y marketing de bicicletas. Genera keywords que coincidan EXACTAMENTE con lo que los compradores buscan, incluyendo términos cortos y directos."
+
+        response = self.client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.5
+            ),
+            contents=prompt
         )
 
         # Limpiar la respuesta
-        keywords = response.choices[0].message.content.strip()
+        keywords = response.text.strip()
         if ":" in keywords:
             keywords = keywords.split(":")[-1].strip()
         keywords = keywords.replace('"', '').replace('`', '')
@@ -239,38 +246,49 @@ class OpenAIService:
         
         REGLAS IMPORTANTES QUE DEBES CUMPLIR:
         1. Longitud máxima: 50-60 caracteres
-        2. Debe incluir la marca/nombre del producto
+        2. Debe incluir el nombre exacto del producto
         3. Debe incluir una palabra clave principal
         4. Estructura según tipo de producto:
-           - KIT: "Kit [Producto] | [Marca/Característica Principal]"
-           - ACCESORIO: "[Tipo Accesorio] para [Producto] | [Marca]"
-           - REPUESTO: "[Tipo Repuesto] [Producto] | [Marca/Especificación]"
+           - KIT: "Kit de [Producto específico] | Alta Calidad"
+           - ACCESORIO: "[Tipo Accesorio específico] para [Producto] | Calidad"
+           - REPUESTO: "[Tipo Repuesto específico] [Producto] | Original"
         
         5. IMPORTANTE:
            - Usar palabras relevantes al inicio
-           - Incluir la marca o característica distintiva
+           - Incluir características distintivas
            - Separar secciones con '|' o '-'
            - NO usar caracteres especiales
+           - NO incluir marcadores de posición como [Marca] o [Tu Marca]
+           - Usar el nombre específico del producto ya proporcionado
         
         Ejemplos según tipo:
-        - KIT: "Kit de Frenos MTB Shimano | Alta Calidad"
-        - ACCESORIO: "Soporte GPS Universal para Moto | Resistente al Agua"
+        - KIT: "Kit de Frenos MTB Shimano Deore | Alta Calidad"
+        - ACCESORIO: "Soporte GPS Universal para Moto | Resistente"
         - REPUESTO: "Pastillas de Freno Yamaha R3 | Original"
         """
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Eres un experto en SEO y marketing. Genera meta titles optimizados que maximicen la visibilidad en buscadores."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5
+        # Configuración del sistema para Gemini
+        system_instruction = "Eres un experto en SEO y marketing. Genera meta titles optimizados que maximicen la visibilidad en buscadores. Usa SOLO información real, nunca uses marcadores de posición como [Marca] o [Tu Marca]."
+
+        response = self.client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.1
+            ),
+            contents=prompt
         )
 
         # Limpiar la respuesta
-        meta_title = response.choices[0].message.content.strip()
+        meta_title = response.text.strip()
         if ":" in meta_title:
             meta_title = meta_title.split(":")[-1].strip()
         meta_title = meta_title.replace('"', '').replace('`', '')
+        
+        # Eliminar cualquier marcador de posición que pudiera haberse colado
+        meta_title = meta_title.replace('[Tu Marca]', '').replace('[Marca]', '')
+        meta_title = meta_title.replace('| |', '|').replace('||', '|').strip()
+        if meta_title.endswith('|'):
+            meta_title = meta_title[:-1].strip()
         
         return meta_title

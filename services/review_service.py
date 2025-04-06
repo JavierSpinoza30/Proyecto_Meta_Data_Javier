@@ -273,8 +273,9 @@ class ReviewService:
                 
         except Exception as e:
             print(f"❌ Error al evaluar review con IA: {str(e)}")
-            # Si hay error, enviamos a revisión humana por seguridad
-            return self.PENDING_HUMAN_REVIEW
+            # Mantener la review como pendiente si hay error con la API de Gemini
+            print("⚠️ API de Gemini no disponible. Manteniendo review en estado pendiente para futuro procesamiento.")
+            return self.PENDING
             
     def process_pending_reviews(self):
         """Procesa todas las reviews pendientes"""
@@ -306,12 +307,15 @@ class ReviewService:
                 # Evaluar contenido con IA
                 new_status = self.evaluate_review_content(review)
                 
-                # Actualizar estado
-                status_text = "aprobada" if new_status == self.APPROVED else "enviada a revisión humana"
-                if self.update_review_status(review_id, new_status):
-                    print(f"✅ Review #{review_id} {status_text}")
+                # Actualizar estado solo si cambió
+                if new_status != self.PENDING:
+                    status_text = "aprobada" if new_status == self.APPROVED else "enviada a revisión humana"
+                    if self.update_review_status(review_id, new_status):
+                        print(f"✅ Review #{review_id} {status_text}")
+                    else:
+                        print(f"❌ Error al actualizar review #{review_id}")
                 else:
-                    print(f"❌ Error al actualizar review #{review_id}")
+                    print(f"⏳ Review #{review_id} se mantiene en estado pendiente para procesamiento futuro")
                     
                 # Pequeña pausa para no sobrecargar la API
                 time.sleep(1)
