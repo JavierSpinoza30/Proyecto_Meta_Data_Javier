@@ -6,7 +6,7 @@ from dotenv import load_dotenv  # Importar dotenv
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
 
-class OpenAIService:
+class GeminiService:
     def __init__(self):
         self.client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 

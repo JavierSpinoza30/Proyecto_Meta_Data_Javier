@@ -1,4 +1,4 @@
-from services.openai_service import OpenAIService
+from services.gemini_service import GeminiService
 from services.magento_service import MagentoService
 from services.hana_service import HanaService
 from services.database_service import ProductService
@@ -9,7 +9,7 @@ from datetime import datetime
 class MetaTitleController:
     def __init__(self):
         # Inicializar servicios necesarios
-        self.openai_service = OpenAIService()
+        self.gemini_service = GeminiService()
         self.magento_service = MagentoService()
         self.hana_service = HanaService()
         self.product_service = ProductService()
@@ -46,8 +46,8 @@ class MetaTitleController:
                     'attributes': attributes
                 }
 
-                # Generar meta title con OpenAI
-                meta_title = self.openai_service.generate_meta_title(product_data)
+                # Generar meta title con Gemini
+                meta_title = self.gemini_service.generate_meta_title(product_data)
 
                 # Validar longitud del meta title
                 if not self.validate_meta_title(meta_title):
