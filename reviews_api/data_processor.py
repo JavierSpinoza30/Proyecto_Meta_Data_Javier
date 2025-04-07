@@ -110,7 +110,8 @@ class ReviewDataProcessor:
                     nickname = %s, 
                     customer_id = %s, 
                     product_name = %s, 
-                    product_sku = %s
+                    product_sku = %s,
+                    processed_at = NULL
                 WHERE review_id = %s
                 """
                 cursor.execute(update_query, (
@@ -132,8 +133,9 @@ class ReviewDataProcessor:
                 INSERT INTO review_products (
                     review_id, created_at, entity_id, entity_pk_value, 
                     status_id, title, detail, nickname, customer_id, 
-                    product_name, product_sku
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    product_name, product_sku, 
+                    sentiment_score, keywords, ai_summary, topics, processed_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, NULL, NULL, NULL, NULL)
                 """
                 cursor.execute(insert_query, (
                     review_data['review_id'],

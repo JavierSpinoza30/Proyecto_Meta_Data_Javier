@@ -1,4 +1,5 @@
 from services.review_service import ReviewService
+from services.review_sentiment_analyzer import ReviewSentimentAnalyzer
 import time
 import threading
 import queue
@@ -51,6 +52,7 @@ builtins.print = print_to_log
 class ReviewController:
     def __init__(self):
         self.review_service = ReviewService()
+        self.review_sentiment_analyzer = ReviewSentimentAnalyzer()
         self.processing_queue = queue.Queue()
         self.is_running = False
         self.worker_thread = None
@@ -77,6 +79,10 @@ class ReviewController:
                 # Procesar todas las reviews pendientes
                 logger.info("Verificando reviews pendientes...")
                 self.review_service.process_pending_reviews()
+                
+                # Procesar análisis de sentimientos para reviews sin analizar
+                logger.info("Ejecutando análisis de sentimientos para reviews sin procesar...")
+                self.review_sentiment_analyzer.process_pending_reviews(batch_size=10)
                 
                 # Esperar 60 segundos antes de la próxima verificación
                 time.sleep(60)
@@ -110,6 +116,11 @@ class ReviewController:
             logger.info("Ejecutando procesamiento manual de reviews pendientes")
             print("🔄 Procesando reviews pendientes...")
             self.review_service.process_pending_reviews()
+            
+            logger.info("Ejecutando análisis de sentimientos para reviews sin procesar")
+            print("🔄 Analizando sentimientos de reviews...")
+            self.review_sentiment_analyzer.process_pending_reviews()
+            
             print("✅ Procesamiento completado")
         except Exception as e:
             logger.error(f"Error en procesamiento manual: {str(e)}")
