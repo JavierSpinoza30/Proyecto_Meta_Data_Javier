@@ -1,4 +1,4 @@
-from services.openai_service import OpenAIService
+from services.gemini_service import GeminiService
 from services.magento_service import MagentoService
 from services.hana_service import HanaService
 from services.database_service import ProductService
@@ -8,7 +8,7 @@ from datetime import datetime
 
 class MetaKeywordsController:
     def __init__(self):
-        self.openai_service = OpenAIService()
+        self.gemini_service = GeminiService()
         self.magento_service = MagentoService()
         self.hana_service = HanaService()
         self.product_service = ProductService()
@@ -36,8 +36,8 @@ class MetaKeywordsController:
                     'attributes': attributes
                 }
 
-                # Generar meta keywords con OpenAI
-                meta_keywords = self.openai_service.generate_meta_keywords(product_data)
+                # Generar meta keywords con Gemini
+                meta_keywords = self.gemini_service.generate_meta_keywords(product_data)
 
                 # Actualizar en Magento
                 magento_success = self.magento_service.update_product_meta_keywords(product['sku'], meta_keywords)

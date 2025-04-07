@@ -1,4 +1,4 @@
-from services.openai_service import OpenAIService
+from services.gemini_service import GeminiService
 from services.magento_service import MagentoService
 from services.database_service import ProductService
 import json
@@ -7,7 +7,7 @@ from datetime import datetime
 
 class DescriptionController:
     def __init__(self):
-        self.openai_service = OpenAIService()
+        self.gemini_service = GeminiService()
         self.magento_service = MagentoService()
         self.product_service = ProductService()
 
@@ -34,8 +34,8 @@ class DescriptionController:
                     'attributes': attributes
                 }
 
-                # Generar descripción con OpenAI
-                description = self.openai_service.generate_product_description(product_data)
+                # Generar descripción con Gemini
+                description = self.gemini_service.generate_product_description(product_data)
 
                 # Actualizar en Magento
                 if self.magento_service.update_product_description(product['sku'], description):
@@ -70,8 +70,8 @@ class DescriptionController:
     #                 'attributes': attributes
     #             }
 
-    #             # Generar descripción con OpenAI
-    #             description = self.openai_service.generate_product_description(product_data)
+    #             # Generar descripción con Gemini
+    #             description = self.gemini_service.generate_product_description(product_data)
 
     #             # Actualizar en Magento
     #             if self.magento_service.update_product_description(product['sku'], description):
