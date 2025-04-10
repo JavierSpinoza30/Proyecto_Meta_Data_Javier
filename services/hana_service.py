@@ -55,4 +55,27 @@ class HanaService:
             return True
         except Exception as e:
             print(f"❌ Error actualizando meta title en HANA: {str(e)}")
+            return False
+
+    def update_meta_description(self, item_code, meta_description):
+        """
+        Actualiza la meta descripción en la base de datos de SAP HANA
+        """
+        try:
+            if not self.connection:
+                self.connect()
+            
+            query = """
+                UPDATE MILANPROD.OITM 
+                SET "U_meta_description" = ?
+                WHERE "ItemCode" = ?
+            """
+            
+            cursor = self.connection.cursor()
+            cursor.execute(query, (meta_description, item_code))
+            self.connection.commit()
+            cursor.close()
+            return True
+        except Exception as e:
+            print(f"❌ Error actualizando meta descripción en HANA: {str(e)}")
             return False 

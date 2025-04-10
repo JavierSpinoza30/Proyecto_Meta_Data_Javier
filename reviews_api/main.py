@@ -7,8 +7,8 @@ from datetime import datetime
 # Agregar el directorio base al path para poder importar módulos
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api_client import ReviewsApiClient
-from data_processor import ReviewDataProcessor
+from reviews_api.api_client import ReviewsApiClient
+from reviews_api.data_processor import ReviewDataProcessor
 
 def main():
     """Función principal para ejecutar la importación de reseñas"""

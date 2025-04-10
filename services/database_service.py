@@ -163,4 +163,57 @@ class ProductService:
             return True
         finally:
             cursor.close()
+            connection.close()
+
+    def get_pending_meta_description_products(self):
+        """
+        Obtiene los productos pendientes de generar meta descripción
+        """
+        connection = self.db.connect()
+        cursor = connection.cursor(dictionary=True)
+        
+        # Consulta trae los productos pendientes de meta descripción
+        try:
+            query = """
+                SELECT
+                p.id, p.sku, p.name, p.type_id, p.category, p.meta_description, p.status_product_meta_description,
+                GROUP_CONCAT(
+                    JSON_OBJECT(
+                        'code', av.attribute_code,
+                        'label', av.label
+                    )
+                ) as attributes
+                FROM products p
+                LEFT JOIN attributes_products ap ON p.id = ap.product_id
+                LEFT JOIN attribute_values av ON ap.attribute_value_id = av.id
+                WHERE p.status_product_meta_description = 'pending' OR p.status_product_meta_description IS NULL
+                GROUP BY p.id, p.sku, p.name, p.type_id, p.category, p.meta_description, p.status_product_meta_description
+                HAVING COUNT(ap.attribute_value_id) >= 0
+            """
+            cursor.execute(query)
+            return cursor.fetchall()
+        finally:
+            cursor.close()
+            connection.close()
+
+    def update_product_meta_description(self, product_id, meta_description):
+        """
+        Actualiza la meta descripción y el estado del producto
+        """
+        connection = self.db.connect()
+        cursor = connection.cursor()
+        
+        try:
+            query = """
+                UPDATE products 
+                SET meta_description = %s,
+                    status_product_meta_description = 'completed',
+                    updated_at = NOW()
+                WHERE id = %s
+            """
+            cursor.execute(query, (meta_description, product_id))
+            connection.commit()
+            return True
+        finally:
+            cursor.close()
             connection.close() 
