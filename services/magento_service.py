@@ -71,3 +71,22 @@ class MagentoService:
 
         response = requests.put(endpoint, json=payload, headers=self.headers)
         return response.status_code == 200
+
+    def update_product_meta_description(self, sku, meta_description):
+        """
+        Actualiza la meta descripción del producto en Magento
+        """
+        endpoint = f"{self.base_url}/rest/all/V1/products/{sku}"
+        payload = {
+            'product': {
+                'custom_attributes': [
+                    {
+                        'attribute_code': 'meta_description',
+                        'value': meta_description
+                    }
+                ]
+            }
+        }
+
+        response = requests.put(endpoint, json=payload, headers=self.headers)
+        return response.status_code == 200

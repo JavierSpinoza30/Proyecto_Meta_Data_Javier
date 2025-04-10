@@ -3,10 +3,12 @@ from product_service import ProductService
 from controllers.description_controller import DescriptionController
 from controllers.meta_keywords_controller import MetaKeywordsController
 from controllers.meta_title_controller import MetaTitleController
+from controllers.meta_description_controller import MetaDescriptionController
 from Categories.category_products_service import CategoryProductsService
 from Categories.categoty_update_products import UpdateProductCategories
 from database import DatabaseConnection
 from datetime import datetime, timedelta
+from reviews_api.main import main as run_reviews_api
 
 def should_truncate(connection):
     """Verifica si ha pasado más de un día desde el último TRUNCATE."""
@@ -69,54 +71,70 @@ def main():
 
         db.disconnect()
 
-    # Procesamiento de atributos
-    print("Procesando atributos...")
-    attribute_service = AttributeService()
-    attribute_service.process_all_attributes()
+    # # Procesamiento de atributos
+    # print("Procesando atributos...")
+    # attribute_service = AttributeService()
+    # attribute_service.process_all_attributes()
 
-    # Procesamiento de productos y crear relacion con atributos
-    print("\nProcesando productos...")
-    product_service = ProductService()
-    product_service.save_to_database()
+    # # Procesamiento de productos y crear relacion con atributos
+    # print("\nProcesando productos...")
+    # product_service = ProductService()
+    # product_service.save_to_database()
 
-    # Procesamiento de categorías de productos
-    print("\n🚀 Iniciando servicio de categorías de productos...")
-    category_service = CategoryProductsService()
+    # # Procesamiento de categorías de productos
+    # print("\n🚀 Iniciando servicio de categorías de productos...")
+    # category_service = CategoryProductsService()
+    # try:
+    #     category_service.save_category_products_to_db()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de categorías detenido por el usuario")
+
+    # # Procesamiento de asignar categorías a los productos
+    # print("\n🚀 Iniciando servicio de asignar categorías a los productos...")
+    # try:
+    #     UpdateProductCategories()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de asignar categorías a los productos detenido por el usuario")
+
+    # # Servicio de meta titles de productos
+    # print("\n🚀 Iniciando servicio de meta titles de productos...")
+    # meta_title_controller = MetaTitleController()
+    # try:
+    #     meta_title_controller.run_meta_title_service()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de meta titles detenido por el usuario")
+
+    # # Servicio de meta keywords de productos
+    # print("\n🚀 Iniciando servicio de meta keywords de productos...")
+    # meta_keywords_controller = MetaKeywordsController()
+    # try:
+    #     meta_keywords_controller.run_meta_keywords_service()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de meta keywords detenido por el usuario")
+        
+    # Servicio de meta descripciones de productos
+    print("\n🚀 Iniciando servicio de meta descripciones de productos...")
+    meta_description_controller = MetaDescriptionController()
     try:
-        category_service.save_category_products_to_db()
+        meta_description_controller.run_meta_description_service()
     except KeyboardInterrupt:
-        print("\n👋 Servicio de categorías detenido por el usuario")
+        print("\n👋 Servicio de meta descripciones detenido por el usuario")
 
-    # Procesamiento de asignar categorías a los productos
-    print("\n🚀 Iniciando servicio de asignar categorías a los productos...")
-    try:
-        UpdateProductCategories()
-    except KeyboardInterrupt:
-        print("\n👋 Servicio de asignar categorías a los productos detenido por el usuario")
-
-    # Servicio de meta titles de productos
-    print("\n🚀 Iniciando servicio de meta titles de productos...")
-    meta_title_controller = MetaTitleController()
-    try:
-        meta_title_controller.run_meta_title_service()
-    except KeyboardInterrupt:
-        print("\n👋 Servicio de meta titles detenido por el usuario")
-
-    # Servicio de meta keywords de productos
-    print("\n🚀 Iniciando servicio de meta keywords de productos...")
-    meta_keywords_controller = MetaKeywordsController()
-    try:
-        meta_keywords_controller.run_meta_keywords_service()
-    except KeyboardInterrupt:
-        print("\n👋 Servicio de meta keywords detenido por el usuario")
-
-    # # Servicio de descripción de productos
+    ## Servicio de descripción de productos
     # print("\n🚀 Iniciando servicio de descripción de productos...")
     # description_controller = DescriptionController()
     # try:
     #     description_controller.run_description_service()
     # except KeyboardInterrupt:
     #     print("\n👋 Servicio de descripción detenido por el usuario")
+    
+    # # Servicio de importación de reseñas
+    # print("\n🚀 Iniciando servicio de importación de reseñas...")
+    # try:
+    #     run_reviews_api()
+    # except KeyboardInterrupt:
+    #     print("\n👋 Servicio de importación de reseñas detenido por el usuario")
+    
     # print("\nProceso completado!")
 
 if __name__ == "__main__":

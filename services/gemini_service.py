@@ -292,3 +292,96 @@ class GeminiService:
             meta_title = meta_title[:-1].strip()
         
         return meta_title
+
+    def generate_meta_description(self, product_data):
+        """
+        Genera meta descripción para el producto basado en sus atributos y categorías
+        """
+        num_attributes = len(product_data['attributes'])
+        
+        # Procesar categorías si están disponibles
+        categories = []
+        if 'category' in product_data:
+            categories = product_data['category'].split(' > ')
+        
+        main_category = categories[0] if categories else ''
+        
+        # Realizamos hasta 3 intentos para obtener una meta descripción válida
+        for intento in range(3):
+            prompt = f"""
+            Genera una meta descripción optimizada para SEO y conversión comercial:
+            
+            Nombre: {product_data['name']}
+            Tipo: {product_data['type_id']}
+            {f'Categorías: {" > ".join(categories)}' if categories else ''}
+            {'Categoría principal: ' + main_category if main_category else ''}
+            
+            Atributos:
+            {self._format_attributes(product_data['attributes']) if product_data['attributes'] else 'No hay atributos disponibles para este producto.'}
+            
+            INSTRUCCIONES:
+            {f'- Como este producto tiene {len(categories)} categorías, usa esa información para contextualizarlo' if categories else ''}
+            {f'- Como este producto no tiene atributos técnicos o tiene muy pocos ({num_attributes}), basa la descripción principalmente en la categoría' if num_attributes <= 2 and categories else ''}
+            {f'- Si es de la categoría {main_category}, destaca los beneficios comunes de productos en esta categoría' if main_category else ''}
+            
+            REGLAS CRÍTICAS QUE DEBES CUMPLIR SIN EXCEPCIÓN:
+            1. LONGITUD EXACTA: Debe tener entre 100 y 155 caracteres INCLUYENDO espacios y puntuación
+            2. Debe describir brevemente el producto y sus beneficios principales
+            3. Incluir al menos una palabra clave relevante al inicio
+            4. Usar tono persuasivo orientado a la venta
+            5. NO usar caracteres especiales innecesarios
+            
+            LA LONGITUD ES CRÍTICA - Si no está entre 100-155 caracteres exactos, será rechazada.
+            
+            ANALIZA TU RESPUESTA ANTES DE ENVIARLA:
+            1. Cuenta los caracteres
+            2. Si hay más de 155 caracteres, acorta hasta cumplir el límite
+            3. Si hay menos de 100, amplía hasta alcanzar el mínimo
+            
+            ESTRUCTURA IDEAL:
+            - Primer tercio: Palabra clave + Descripción del producto
+            - Segundo tercio: Beneficio principal
+            - Último tercio: Beneficio secundario o llamada a acción sutil
+            
+            Ejemplos VÁLIDOS según categoría:
+            - MOTOS: "Repuesto original para motor Yamaha FZ150. Máxima durabilidad y rendimiento óptimo para tu moto. Compatible con distintos modelos de la marca." (139 caracteres)
+            - BICICLETAS: "Marco de bicicleta MTB en aluminio liviano y resistente. Diseñado para senderos exigentes con máxima estabilidad. Incluye garantía de calidad." (131 caracteres)
+            - ACCESORIOS: "Soporte GPS universal para motos compatible con todas las motocicletas. Protege tu dispositivo contra vibraciones y mantén tu ruta visible siempre." (149 caracteres)
+            """
+
+            # Configuración del sistema para Gemini
+            system_instruction = "Eres un experto en SEO y copywriting. Debes generar meta descripciones entre 100-155 caracteres EXACTOS. Utiliza la información de categoría cuando no hay suficientes atributos. Verifica la longitud antes de enviar tu respuesta."
+
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash",
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.2
+                ),
+                contents=prompt
+            )
+
+            # Limpiar la respuesta
+            meta_description = response.text.strip()
+            if ":" in meta_description:
+                meta_description = meta_description.split(":")[-1].strip()
+            meta_description = meta_description.replace('"', '').replace('`', '')
+            
+            # Verificar si cumple con los requisitos de longitud
+            if 100 <= len(meta_description) <= 160:
+                return meta_description
+                
+            # Si es el tercer intento y aún no cumple, ajustar manualmente
+            if intento == 2:
+                if len(meta_description) > 160:
+                    return meta_description[:157] + "..."
+                elif len(meta_description) < 100:
+                    return meta_description + " " + "Calidad y durabilidad garantizada para tu satisfacción."[:100-len(meta_description)]
+        
+        # Si después de todos los intentos no se logra, devolver la última versión ajustada
+        if len(meta_description) > 160:
+            return meta_description[:157] + "..."
+        elif len(meta_description) < 100:
+            return meta_description + " " + "Calidad y durabilidad garantizada para tu satisfacción."[:100-len(meta_description)]
+            
+        return meta_description

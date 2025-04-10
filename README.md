@@ -39,6 +39,64 @@ Este proyecto permite generar y gestionar metadatos SEO para productos de Magent
 - `services/`: Servicios que interactúan con APIs y bases de datos
 - `templates/`: Plantillas para la interfaz web
 
+## Servicio de Meta Descripciones SEO
+
+El sistema incluye un potente servicio para generar automáticamente meta descripciones optimizadas para SEO utilizando inteligencia artificial de Google (Gemini).
+
+### Características del Servicio de Meta Descripciones
+
+- **Generación inteligente**: Crea meta descripciones optimizadas para SEO basadas en atributos y categorías del producto
+- **Validación automática**: Garantiza que todas las meta descripciones tengan entre 100-160 caracteres
+- **Optimización para categorías**: Utiliza información de categorías jerárquicas (ej: "Repuestos > Galápagos > Mtb Y Ruta")
+- **Respaldo para productos sin atributos**: Genera descripciones basadas en categorías cuando no hay suficientes atributos
+- **Sincronización múltiple**: Actualiza automáticamente Magento, SAP HANA y la base de datos local
+
+### Flujo de Trabajo del Servicio
+
+1. El sistema identifica productos pendientes de meta descripción
+2. Para cada producto:
+   - Extrae sus atributos y categorías
+   - Genera una meta descripción optimizada utilizando IA
+   - Valida que cumpla con la longitud requerida (100-160 caracteres)
+   - Actualiza simultáneamente Magento y SAP HANA
+   - Registra el estado en la base de datos local
+
+### Ejecución del Servicio
+
+El servicio de meta descripciones se ejecuta como parte del flujo principal:
+
+```bash
+python main.py
+```
+
+También puede ejecutarse de forma independiente modificando el archivo `main.py` para desactivar los otros servicios.
+
+### Reglas para Meta Descripciones
+
+El sistema sigue estas pautas para generar meta descripciones efectivas:
+
+- **Longitud óptima**: Entre 100-160 caracteres (Google muestra ~155-160 caracteres en resultados de búsqueda)
+- **Estructura recomendada**:
+  - Primer tercio: Palabra clave principal + descripción del producto
+  - Segundo tercio: Beneficio principal del producto
+  - Último tercio: Beneficio secundario o llamada a la acción
+- **Adaptación por tipo de producto**:
+  - **KIT**: Menciona "kit completo" y principales componentes
+  - **ACCESORIO**: Enfatiza compatibilidad y beneficio principal
+  - **REPUESTO**: Destaca calidad, compatibilidad y durabilidad
+- **Personalización por categoría**:
+  - Utiliza terminología específica según la categoría principal (MOTOS, BICICLETAS, REPUESTOS, etc.)
+  - Adapta los beneficios mencionados según el contexto de la categoría
+
+### Ejemplos de Meta Descripciones por Categoría
+
+- **MOTOS**: "Repuesto original para motor Yamaha FZ150. Máxima durabilidad y rendimiento óptimo para tu moto. Compatible con distintos modelos de la marca."
+- **BICICLETAS**: "Marco de bicicleta MTB en aluminio liviano y resistente. Diseñado para senderos exigentes con máxima estabilidad. Incluye garantía de calidad."
+- **ACCESORIOS**: "Soporte GPS universal para motos compatible con todas las motocicletas. Protege tu dispositivo contra vibraciones y mantén tu ruta visible siempre."
+
+### Archivos implicados para generar las meta descriptions
+main, magento_service, gemioni_service, database_service, hana_service, meta_description_controller 
+
 ## Servicio de Moderación Automática de Reviews
 
 El sistema incluye un servicio para moderar automáticamente las reviews de productos utilizando IA:
